@@ -12,6 +12,7 @@
 #include <bytes.hpp>
 #include <loader.hpp>
 #include <kernwin.hpp>
+#include <auto.hpp>
 
 
 #define PPC2C_VERSION	"v1.2"
@@ -981,10 +982,14 @@ bool PPCAsm2C(ea_t ea, char* buff, int buffSize)
 int idaapi PluginStartup(void)
 {
 	// PPC To C only works with PPC code :)
-	if ( ph.id != PLFM_PPC )
-		return PLUGIN_SKIP;
+    if(ph.id != PLFM_PPC)
+    {
+        msg("ppc2c: skipped\n");
+        return PLUGIN_SKIP;
+    }
 
 	// if PPC then this plugin is OK to use
+    msg("ppc2c: loaded\n");
 	return PLUGIN_OK;
 }
 
@@ -1057,6 +1062,7 @@ void idaapi PluginMain(int param)
 	}
 
 	// convert all instructions within the bounds
+    msg("ppc2c: %x - %x\n", start_addr, end_addr);
 	char c_code_str[1024];
 	for(ea_t addr=start_addr; addr<end_addr; addr+=4)
 	{
@@ -1066,9 +1072,14 @@ void idaapi PluginMain(int param)
 			// but if the result is an empty string we may not want to display it
 			if( strlen(c_code_str) > 0 || always_insert_comment)
 			{
+                msg("%x: %s\n", c_code_str);
 				// insert the C code as a comment
 				set_cmt(addr, c_code_str, false);
 			}
+            else
+            {
+                msg("%x: empty\n", addr);
+            }
 		}
 		else
 		{
